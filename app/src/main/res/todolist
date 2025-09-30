@@ -1,0 +1,43 @@
+基于Wear OS 5 (Android 13)为Samsung Galaxy Watch 6开发秒表应用的基本TODO清单如下：
+
+## 项目初始化
+- [ ] 创建新的Android项目，选择 Wear OS 作为目标平台
+- [ ] 配置 `build.gradle` 文件，设置正确的SDK版本：
+  - `minSdkVersion 30` (Android 11，Wear OS 3最低要求)
+  - `targetSdkVersion 33` (Android 13)
+- [ ] 添加必要的依赖项和权限
+
+## UI设计与实现
+- [ ] 设计主界面布局显示时间
+- [ ] 实现开始/暂停按钮
+- [ ] 实现重置按钮
+- [ ] 实现圈数记录功能
+- [ ] 适配圆形屏幕和不同尺寸的Wear OS设备
+- [ ] 使用 `androidx.wear.widget` 中的组件优化手表UI体验
+
+## 核心功能开发
+- [ ] 实现计时逻辑
+- [ ] 实现暂停/恢复功能
+- [ ] 实现重置功能
+- [ ] 实现记录圈数功能
+- [ ] 添加震动反馈（可选）
+
+## 数据持久化
+- [ ] 实现圈数数据存储
+- [ ] 应用暂停后恢复计时状态
+
+## 性能与优化
+- [ ] 优化电池使用（避免持续唤醒CPU）
+- [ ] 测试在Galaxy Watch 6上的性能表现
+- [ ] 确保UI响应流畅
+
+## 权限与配置
+- [ ] 在 [AndroidManifest.xml](file://D:\AndroidAPP\Timer\app\src\main\AndroidManifest.xml) 中添加Wear OS必需的权限
+- [ ] 配置正确的应用图标和启动器设置
+
+## 测试与调试
+- [ ] 在模拟器和真实设备上测试
+- [ ] 验证各种交互场景（后台运行、屏幕关闭等）
+- [ ] 进行内存泄漏检查
+
+这样您就可以逐步构建出一个完整的Wear OS秒表应用程序了。
