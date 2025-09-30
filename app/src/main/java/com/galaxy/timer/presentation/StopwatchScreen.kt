@@ -15,7 +15,6 @@ import androidx.wear.compose.material.*
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.tooling.preview.devices.WearDevices
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Refresh
@@ -24,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.filled.OutlinedFlag
 
 /**
  * 秒表主界面组件
@@ -101,7 +101,7 @@ fun StopwatchScreen() {
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    ControlButton(icon = Icons.Filled.AddCircle) {
+                    ControlButton(icon = Icons.Filled.OutlinedFlag) {
                         if (isRunning) {
                             val currentLapTime = elapsedTime - lastLapTime
                             lapTimes = lapTimes + currentLapTime
@@ -147,13 +147,16 @@ fun LapTimesDisplay(lapTimes: List<Long>) {
                     ((latestLap % 60000) / 1000).toInt(),
                     ((latestLap % 1000) / 10).toInt()
                 ),
-                fontSize = 12.sp,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(vertical = 2.dp)
             )
         }
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun DetailPage(lapTimes: List<Long>, totalTime: Long) {
     Column(
@@ -162,9 +165,9 @@ fun DetailPage(lapTimes: List<Long>, totalTime: Long) {
     ) {
         Text(
             text = "分段时间记录",
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
         // 中间：可滚动的分段列表，占用剩余空间
@@ -173,37 +176,38 @@ fun DetailPage(lapTimes: List<Long>, totalTime: Long) {
             modifier = Modifier
                 .weight(1f) // 占满中间空间
                 .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            lapTimes.forEachIndexed { index, time ->
+            lapTimes.asReversed().forEachIndexed { index, time ->
                 Text(
                     text = String.format(
                         "Lap %d: %02d:%02d:%02d.%02d",
-                        index + 1,
+                        lapTimes.size - index,
                         (time / 3600000).toInt(),
                         ((time % 3600000) / 60000).toInt(),
                         ((time % 60000) / 1000).toInt(),
                         ((time % 1000) / 10).toInt()
                     ),
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(vertical = 2.dp)
                 )
             }
         }
 
         // 底部：总时间（始终固定显示）
         Text(
-            text = "${String.format(
+            text = String.format(
                 "%02d:%02d:%02d.%02d",
                 (totalTime / 3600000).toInt(),
                 ((totalTime % 3600000) / 60000).toInt(),
                 ((totalTime % 60000) / 1000).toInt(),
                 ((totalTime % 1000) / 10).toInt()
-            )}",
+            ),
             fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(vertical = 12.dp)
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
     }
 }
@@ -240,7 +244,7 @@ fun ControlButton(icon: ImageVector, onClick: () -> Unit) {
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colors.onPrimary,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(22.dp)
         )
     }
 }
