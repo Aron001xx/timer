@@ -35,7 +35,7 @@ fun StopwatchScreen() {
     var elapsedTime by remember { mutableStateOf(0L) }
     var lastTime by remember { mutableStateOf(0L) }
     var lastLapTime by remember { mutableStateOf(0L) } // 记录上一次分段计时的时间点
-    var lapTimes by remember { mutableStateOf(listOf(0L)) } // 存储每次分段时间间隔
+    var lapTimes by remember { mutableStateOf(listOf<Long>()) } // 存储每次分段时间间隔
     var isDetailPage by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var offsetX by remember { mutableStateOf(0f) }
@@ -93,7 +93,7 @@ fun StopwatchScreen() {
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Spacer(modifier = Modifier.width(2.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
 
                     ControlButton(icon = if (isRunning) Icons.Filled.Pause else Icons.Filled.PlayArrow) {
                         isRunning = !isRunning
@@ -104,7 +104,13 @@ fun StopwatchScreen() {
                     ControlButton(icon = Icons.Filled.OutlinedFlag) {
                         if (isRunning) {
                             val currentLapTime = elapsedTime - lastLapTime
-                            lapTimes = lapTimes + currentLapTime
+                            lapTimes = if (lapTimes.isEmpty()) {
+                                // 如果是第一次分段，直接添加
+                                listOf(currentLapTime)
+                            } else {
+                                // 否则添加到列表末尾
+                                lapTimes + currentLapTime
+                            }
                             lastLapTime = elapsedTime
                         }
                     }
@@ -116,10 +122,10 @@ fun StopwatchScreen() {
                         elapsedTime = 0L
                         lastTime = 0L
                         lastLapTime = 0L
-                        lapTimes = listOf(0L)
+                        lapTimes = listOf()
                     }
 
-                    Spacer(modifier = Modifier.width(2.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                 }
             }
         } else {
@@ -137,7 +143,16 @@ fun LapTimesDisplay(lapTimes: List<Long>) {
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (lapTimes.isNotEmpty()) {
+        if (lapTimes.isEmpty()) {
+            // 没有分段计时时显示提示文字
+            Text(
+                text = "暂无分段计时",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+        } else {
             val latestLap = lapTimes.last()
             Text(
                 text = String.format(
@@ -147,15 +162,14 @@ fun LapTimesDisplay(lapTimes: List<Long>) {
                     ((latestLap % 60000) / 1000).toInt(),
                     ((latestLap % 1000) / 10).toInt()
                 ),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.secondary, // 使用次要颜色突出显示
                 modifier = Modifier.padding(vertical = 2.dp)
             )
         }
     }
 }
-
 @SuppressLint("DefaultLocale")
 @Composable
 fun DetailPage(lapTimes: List<Long>, totalTime: Long) {
@@ -172,26 +186,46 @@ fun DetailPage(lapTimes: List<Long>, totalTime: Long) {
 
         // 中间：可滚动的分段列表，占用剩余空间
         val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .weight(1f) // 占满中间空间
-                .verticalScroll(scrollState)
-                .padding(horizontal = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            lapTimes.asReversed().forEachIndexed { index, time ->
+
+        if (lapTimes.isEmpty()) {
+            // 没有分段计时时显示提示文字
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    text = String.format(
-                        "Lap %d: %02d:%02d:%02d.%02d",
-                        lapTimes.size - index,
-                        (time / 3600000).toInt(),
-                        ((time % 3600000) / 60000).toInt(),
-                        ((time % 60000) / 1000).toInt(),
-                        ((time % 1000) / 10).toInt()
-                    ),
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(vertical = 2.dp)
+                    text = "暂无分段计时",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                 )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f) // 占满中间空间
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                lapTimes.asReversed().forEachIndexed { index, time ->
+                    val isLatest = index == 0 // 最新的分段计时是反转后的第一个元素
+                    Text(
+                        text = String.format(
+                            "Lap %d: %02d:%02d:%02d.%02d",
+                            lapTimes.size - index,
+                            (time / 3600000).toInt(),
+                            ((time % 3600000) / 60000).toInt(),
+                            ((time % 60000) / 1000).toInt(),
+                            ((time % 1000) / 10).toInt()
+                        ),
+                        fontSize = if (isLatest) 15.sp else 13.sp,
+                        fontWeight = if (isLatest) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (isLatest) MaterialTheme.colors.secondary else MaterialTheme.colors.onSurfaceVariant, // 最新分段使用secondary颜色
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                }
             }
         }
 
@@ -204,13 +238,14 @@ fun DetailPage(lapTimes: List<Long>, totalTime: Long) {
                 ((totalTime % 60000) / 1000).toInt(),
                 ((totalTime % 1000) / 10).toInt()
             ),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colors.primary,
+            fontSize = 16.sp, // 稍微增大字体
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colors.primary, // 使用primary颜色突出总时间
             modifier = Modifier.padding(vertical = 8.dp)
         )
     }
 }
+
 
 
 @SuppressLint("DefaultLocale")
@@ -223,11 +258,12 @@ fun TimeDisplay(elapsedTime: Long) {
 
     Text(
         text = String.format("%02d:%02d:%02d.%02d", hours, minutes, seconds, milliseconds),
-        fontSize = 24.sp,
+        fontSize = 26.sp, // 稍微增大主时间显示
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colors.primary
     )
 }
+
 
 @Composable
 fun ControlButton(icon: ImageVector, onClick: () -> Unit) {
@@ -253,4 +289,12 @@ fun ControlButton(icon: ImageVector, onClick: () -> Unit) {
 @Composable
 fun StopwatchScreenPreview() {
     StopwatchScreen()
+}
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Composable
+fun DetailPagePreview() {
+    // 提供一些示例数据用于预览
+    val sampleLapTimes = listOf(12340L, 23450L, 34560L)
+    val sampleTotalTime = 98760L
+    DetailPage(lapTimes = sampleLapTimes, totalTime = sampleTotalTime)
 }
